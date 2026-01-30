@@ -8,6 +8,6 @@ public class RootController {
 
     @GetMapping("/")
     public String home() {
-        return "Vibe Realtime Project is running!";
+        return "Vibe Realtime Project is running! setting test";
     }
 }
