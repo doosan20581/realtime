@@ -25,3 +25,8 @@ AI 툴을 활용한 바이브 코딩 방식으로 구조 설계와 개발을 진
 - 초기에는 구조와 책임 분리에 집중
 - 반복적인 작업은 스크립트 + AI로 자동화
 - 실시간 처리와 트랜잭션 설계 경험을 목표로 함
+
+## 📄 Documentation
+프로젝트의 아키텍처 및 상세 문서는 Notion 페이지에서 관리합니다.
+
+👉 [Realtime Toy Project Notion](https://thorn-amphibian-949.notion.site/Realtime-Toy-Project-31983d78085080ecb6c0d9b482caf165?pvs=74)
