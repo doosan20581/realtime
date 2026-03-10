@@ -25,19 +25,18 @@ repositories {
 }
 
 dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-websocket")
 	
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	
+	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testImplementation("org.springframework.boot:spring-boot-starter-websocket-test")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	
 	//h2 설정
 	runtimeOnly("com.h2database:h2")
