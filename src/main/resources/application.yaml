@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 9090
   servlet:
     context-path: /
 
@@ -7,20 +7,21 @@ spring:
   application:
     name: realtime
 
-  h2:
-    console:
-    enabled: true
-    path: /h2-console
+  #h2:
+    #console:
+    #enabled: true
+    #path: /h2-console
 
   datasource:
-    # 개발 단계에서는 H2 메모리 DB 사용
-    url: jdbc:h2:mem:testdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:mysql://database-realtime.c9ic82u8gyj5.ap-northeast-2.rds.amazonaws.com:3306/toyproject?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: admin
+    password: Realtime!213!
 
   jpa:
     hibernate:
-      # 엔티티 기준으로 테이블 생성은 나중에 설정
-      ddl-auto: create
+      ddl-auto: none
     show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
