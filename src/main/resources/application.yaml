@@ -28,4 +28,6 @@ spring:
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
+    com.vibe.realtime: DEBUG
+    org.hibernate.SQL: DEBUG
