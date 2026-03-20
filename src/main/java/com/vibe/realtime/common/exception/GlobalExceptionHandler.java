@@ -16,6 +16,8 @@ public class GlobalExceptionHandler {
     // BusinessException 처리
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Object>> handleBusinessException(BusinessException ex) {
+    	log.debug("BusinessException error: {}", ex);
+    	
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.fail(ex.getErrorCode().getCode(), ex.getMessage()));
@@ -25,7 +27,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidationException(
             org.springframework.web.bind.MethodArgumentNotValidException ex) {
-
+    	log.debug("Validation error: {}", ex);
+    	
         String errorMessage = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -41,7 +44,7 @@ public class GlobalExceptionHandler {
     // 기타 런타임 예외 처리
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex) {
-        log.debug("Unexpected error: {}", ex); // 로그는 남기고
+        log.debug("Unexpected error: {}", ex);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
