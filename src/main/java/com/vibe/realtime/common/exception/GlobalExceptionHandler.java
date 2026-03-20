@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.vibe.realtime.common.response.ApiResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -38,7 +41,7 @@ public class GlobalExceptionHandler {
     // 기타 런타임 예외 처리
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex) {
-        //log.error("Unexpected error", ex); // 로그는 남기고
+        log.debug("Unexpected error: {}", ex); // 로그는 남기고
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
