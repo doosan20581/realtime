@@ -75,15 +75,21 @@ public class AuthService {
         // 2️. CustomUserDetails 추출
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
 
-        // 3️. JWT 생성
+        // 3️-1. ACCESS TOKEN 생성
         String accessToken = jwtProvider.createAccessToken(
             userDetails.getUserId(),
             userDetails.getAuthorities()
         );
+        
+        // 3-2. (추가) REFRESH TOKEN 생성
+        // 작업 필요
+        // 현재 aws 기본 환경 세팅 완료 (ec2, elasticache redis oss)
+        // 로컬 개발시 로컬 pc 에서 ssh 터널링으로 6379 포트 redis 통신 예정, 로컬 작업지에 ec2 ssh 접속용 개인키 설치 확인
 
+        // 3-3 JWT 생성
         TokenResponse tokenResponse = TokenResponse.builder()
             .accessToken(accessToken)
-            .refreshToken(null)
+            .refreshToken(null) // (추가) 현재는 null 이지만, 이제 refresh token 작성하는 부분 작업하여서 처리 필요
             .expiresIn(jwtProvider.getAccessTokenExpirySeconds())
             .build();
 
