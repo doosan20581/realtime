@@ -22,14 +22,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     /**
      * 로그인 시 호출되는 핵심 메서드
      *
-     * @param username (여기서는 email)
+     * @param email
      * @return UserDetails
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
         // 1. DB에서 사용자 조회
-        User user = userRepository.findByEmail(username)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
 
@@ -43,6 +43,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
+                user.getName(),
                 authorities
         );
     }

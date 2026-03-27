@@ -34,7 +34,7 @@ public class AuthService {
 	    User user = userService.createUser(
 	        request.getEmail(),
 	        request.getPassword(),
-	        request.getUsername()
+	        request.getName()
 	    );
 	    
 	    // roles 포함 JWT 생성
@@ -96,8 +96,8 @@ public class AuthService {
         // 4️. UserResponse 생성
         UserResponse userResponse = UserResponse.builder()
             .id(userDetails.getUserId())
-            .username(userDetails.getUsername())
-            .email(userDetails.getUsername())
+            .name(userDetails.getName())
+            .email(userDetails.getEmail())
             .roles(userDetails.getAuthorities()
                 .stream()
                 .map(auth -> auth.getAuthority())

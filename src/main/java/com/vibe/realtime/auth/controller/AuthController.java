@@ -96,8 +96,8 @@ public class AuthController {
         // CustomUserDetails에서 필요한 정보 추출
         UserResponse userResponse = UserResponse.builder()
                 .id(userDetails.getUserId())
-                .username(userDetails.getUsername())
-                .email(userDetails.getUsername()) // 필요 시 userDetails에 username 추가
+                .name(userDetails.getName())
+                .email(userDetails.getEmail())
                 .roles(userDetails.getAuthorities().stream()
                         .map(auth -> auth.getAuthority())
                         .toList())

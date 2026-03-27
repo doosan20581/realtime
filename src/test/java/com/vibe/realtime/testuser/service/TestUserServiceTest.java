@@ -39,7 +39,7 @@ class TestUserServiceTest {
         // 테스트용 더미 사용자 객체 생성
         TestUser user = TestUser.builder()
                 .id(1)
-                .username("kim")
+                .name("kim")
                 .email("kim@test.com")
                 .password("1234")
                 .createdAt(LocalDateTime.now())
@@ -59,7 +59,7 @@ class TestUserServiceTest {
         TestUserResponse response = testUserService.getTestUser(1);
 
         // 검증(assertion)
-        // 서비스가 반환한 DTO의 username이 "kim"인지 확인
-        assertThat(response.getUsername()).isEqualTo("kim");
+        // 서비스가 반환한 DTO의 name이 "kim"인지 확인
+        assertThat(response.getName()).isEqualTo("kim");
     }
 }

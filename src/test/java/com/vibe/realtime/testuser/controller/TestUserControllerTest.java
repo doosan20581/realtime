@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 
@@ -19,6 +19,7 @@ import com.vibe.realtime.testuser.dto.TestUserResponse;
 import com.vibe.realtime.testuser.service.TestUserService;
 
 @WebMvcTest(TestUserController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class TestUserControllerTest {
 
     @Autowired
@@ -33,7 +34,7 @@ class TestUserControllerTest {
         TestUserResponse response =
                 TestUserResponse.builder()
                         .id(1)
-                        .username("kim")
+                        .name("kim")
                         .email("kim@test.com")
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
@@ -42,9 +43,9 @@ class TestUserControllerTest {
         when(testUserService.getTestUser(1))
                 .thenReturn(response);
 
-        mockMvc.perform(get("/api/test-users/1"))
+        mockMvc.perform(get("/api/test/test-users/1"))
         		.andDo(MockMvcResultHandlers.print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("kim"));
+                .andExpect(jsonPath("$.name").value("kim"));
     }
 }

@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/test-users")
+@RequestMapping("/api/test/test-users")
 public class TestUserController {
 	
 	private final TestUserService testUserService;

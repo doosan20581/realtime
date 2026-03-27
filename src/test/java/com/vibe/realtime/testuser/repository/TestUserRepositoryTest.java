@@ -49,7 +49,7 @@ class TestUserRepositoryTest {
          * builder()는 Lombok의 @Builder 기능
          */
         TestUser user = TestUser.builder()
-                .username("kim")
+                .name("kim")
                 .email("kim@test.com")
                 .password("1234")
                 .build();

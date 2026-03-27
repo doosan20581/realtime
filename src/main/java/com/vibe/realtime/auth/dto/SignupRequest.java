@@ -27,6 +27,6 @@ public class SignupRequest {
     @NotBlank(message = "사용자 이름은 필수입니다.")
     @Size(max = 50, message = "사용자 이름은 최대 50자까지 가능합니다.")
     @Schema(description = "사용자 이름", example = "tester", required = true)
-    private String username;
+    private String name;
     
 }

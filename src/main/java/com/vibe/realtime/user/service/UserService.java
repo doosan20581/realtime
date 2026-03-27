@@ -23,7 +23,7 @@ public class UserService {
     private final RoleRepository roleRepository;
     
     @Transactional
-    public User createUser(String email, String password, String username) {
+    public User createUser(String email, String password, String name) {
 
         // 1️. 이메일 중복 체크
         if (userRepository.existsByEmail(email)) {
@@ -34,7 +34,7 @@ public class UserService {
         User user = User.builder()
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .username(username)
+                .name(name)
                 .build();
         
         // 2.1. 기본 ROLE_USER 할당

@@ -21,7 +21,7 @@ public class TestUserResponse {
 
     // API 응답에 포함될 필드들
 	private Integer id;
-    private String username;
+    private String name;
     private String email;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -35,7 +35,7 @@ public class TestUserResponse {
 
                 // Entity 값 → DTO 값 복사
                 .id(user.getId())
-                .username(user.getUsername())
+                .name(user.getName())
                 .email(user.getEmail())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

@@ -19,7 +19,7 @@ public class UserResponse {
     private Integer id;
 
     @Schema(description = "사용자 이름", example = "tester")
-    private String username;
+    private String name;
 
     @Schema(description = "사용자 이메일", example = "tester@example.com")
     private String email;
@@ -33,7 +33,7 @@ public class UserResponse {
     public static UserResponse from(User user) {
         return UserResponse.builder()
                 .id(user.getId())
-                .username(user.getUsername())
+                .name(user.getName())
                 .email(user.getEmail())
                 .roles(user.getRoles() != null
                         ? user.getRoles().stream()

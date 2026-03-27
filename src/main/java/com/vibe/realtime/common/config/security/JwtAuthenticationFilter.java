@@ -15,6 +15,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.vibe.realtime.auth.security.CustomUserDetails;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -35,17 +37,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (token != null && jwtProvider.validateToken(token)) {
 
             // 3. 사용자 ID 추출
-            Long userId = jwtProvider.getUserIdFromToken(token);
+            Integer userId = jwtProvider.getUserIdFromToken(token);
 
             // 4. 사용자 롤 정보 추출 후 GrantedAuthority로 변환
             List<SimpleGrantedAuthority> authorities = jwtProvider.getRolesFromToken(token)
                     .stream()
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
-
+            
+            CustomUserDetails userDetails = new CustomUserDetails(userId, authorities);
+            	
             // 5. Authentication 객체 생성 후 SecurityContext에 등록
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        authorities
+                );
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
