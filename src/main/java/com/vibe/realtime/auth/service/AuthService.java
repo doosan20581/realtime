@@ -1,6 +1,9 @@
 package com.vibe.realtime.auth.service;
 
 import java.time.Duration;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -8,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,10 +22,12 @@ import com.vibe.realtime.auth.dto.SignupRequest;
 import com.vibe.realtime.auth.dto.TokenResponse;
 import com.vibe.realtime.auth.security.CustomUserDetails;
 import com.vibe.realtime.common.config.security.JwtProvider;
+import com.vibe.realtime.common.util.RequestUtil;
 import com.vibe.realtime.user.dto.UserResponse;
 import com.vibe.realtime.user.entity.User;
 import com.vibe.realtime.user.service.UserService;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -31,7 +37,8 @@ public class AuthService {
 	private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, Object> redisTemplate; // Value를 Object로 선언해야 Map, DTO 등이 허용됨
+    private final HttpServletRequest httpServletRequest; // 주입 가능
     
     /**
      * 신규 회원가입
@@ -48,46 +55,18 @@ public class AuthService {
 	        request.getName()
 	    );
 	    
-	    // 2-1. access_jti 생성
-	    String access_jti = UUID.randomUUID().toString(); // 토큰 고유 ID
-	    
-	    // 2-2. ACCESS TOKEN 생성
-	    String accessToken = jwtProvider.createAccessToken(
-	        user.getId(),
-	        user.getRoles().stream()
+	    // 2. 권한 정보 가공
+	    List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
 	            .map(role -> new SimpleGrantedAuthority(role.getName()))
-	            .collect(Collectors.toList()),
-	        access_jti
-	    );
+	            .collect(Collectors.toList());
 	    
-	    // 3-1. refresh_jti 생성
-	    String refresh_jti = UUID.randomUUID().toString(); // 토큰 고유 ID
+	    // 3. 통합 메서드 호출 (토큰 생성 + Redis 저장)
+	    TokenResponse tokenResponse = generateTokenSet(user.getId(), authorities);
 	    
-	    // 3-2. REFRESH TOKEN 생성
-        // 현재 aws 기본 환경 세팅 완료 (ec2, elasticache redis oss)
-        // 로컬 개발시 로컬 pc 에서 ssh 터널링으로 6379 포트 redis 통신 예정, 로컬 작업지에 ec2 ssh 접속용 개인키 설치 확인
-        String refreshToken = jwtProvider.createRefreshToken(user.getId(), refresh_jti);
-        
-        // 3-3. Redis 저장
-        String redisKey = "RT:" + user.getId();
-
-        redisTemplate.opsForValue().set(
-            redisKey,
-            refresh_jti,
-            Duration.ofMillis(jwtProvider.getRefreshTokenExpirySeconds() * 1000)
-        );
-        
-        // 4. TokenResponse 생성 - 백엔드용 context
-	    TokenResponse tokenResponse = TokenResponse.builder()
-	            .accessToken(accessToken)
-	            .refreshToken(refreshToken)
-	            .expiresIn(jwtProvider.getAccessTokenExpirySeconds())
-	            .build();
-	    
-	    // 5. UserResponse 생성 - 프론트엔드용 context
+	    // 4. UserResponse 생성 - 프론트엔드용 context
 	    UserResponse userResponse = UserResponse.from(user);
 	    
-	    // 6. AuthResponse 반환
+	    // 5. AuthResponse 반환
 	    return AuthResponse.builder()
 	            .token(tokenResponse)
 	            .user(userResponse)
@@ -110,47 +89,16 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(email, password)
         );
-
+        // 필수: 인증 정보를 Spring Security 컨텍스트에 저장
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         // 2️. CustomUserDetails 추출
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         
-        // 3-1. access_jti 생성
-	    String access_jti = UUID.randomUUID().toString(); // 토큰 고유 ID
+        // 3. 통합 메서드 호출 (토큰 생성 + Redis 저장)
+	    TokenResponse tokenResponse = generateTokenSet(userDetails.getUserId(), userDetails.getAuthorities());
 
-        // 3️-2. ACCESS TOKEN 생성
-        String accessToken = jwtProvider.createAccessToken(
-            userDetails.getUserId(),
-            userDetails.getAuthorities(),
-            access_jti
-        );
-        
-        // 4-1. refresh_jti 생성
-	    String refresh_jti = UUID.randomUUID().toString(); // 토큰 고유 ID
-        
-        // 4-2. REFRESH TOKEN 생성
-        // 현재 aws 기본 환경 세팅 완료 (ec2, elasticache redis oss)
-        // 로컬 개발시 로컬 pc 에서 ssh 터널링으로 6379 포트 redis 통신 예정, 로컬 작업지에 ec2 ssh 접속용 개인키 설치 확인
-        String refreshToken = jwtProvider.createRefreshToken(userDetails.getUserId(), refresh_jti);
-        
-        // 4-3. Redis 저장
-        String redisKey = "RT:" + userDetails.getUserId();
-
-        redisTemplate.opsForValue().set(
-            redisKey,
-            refresh_jti,
-            Duration.ofMillis(jwtProvider.getRefreshTokenExpirySeconds() * 1000)
-        );
-
-        // 5. TokenResponse 생성 - 백엔드용 context
-        TokenResponse tokenResponse = TokenResponse.builder()
-            .accessToken(accessToken)
-            .refreshToken(refreshToken)
-            .expiresIn(jwtProvider.getAccessTokenExpirySeconds())
-            .build();
-
-        // 6. UserResponse 생성 - 프론트엔드용 context
+        // 4. UserResponse 생성 - 프론트엔드용 context
         UserResponse userResponse = UserResponse.builder()
             .id(userDetails.getUserId())
             .name(userDetails.getName())
@@ -161,11 +109,64 @@ public class AuthService {
                 .collect(Collectors.toList()))
             .build();
 
-        // 7. AuthResponse 반환
+        // 5. AuthResponse 반환
         return AuthResponse.builder()
             .token(tokenResponse)
             .user(userResponse)
             .build();
     }
+	
+	/**
+	 * 토큰 세트 생성 및 리프레시 토큰 Redis 저장 통합 메서드
+	 */
+	private TokenResponse generateTokenSet(Integer userId, Collection<? extends GrantedAuthority> authorities) {
+		/**
+	     * [Refresh Token 관리 구조]
+	     * * 1. Key: RT:{user_id}:{jti}
+	     * - user_id: 사용자 식별자 (Long)
+	     * - jti: 토큰 고유 UUID (String)
+	     * - 목적: 멀티 디바이스 로그인 허용 및 각 세션의 독립적 제어
+	     * * 2. Value: JSON String (Map<String, String>)
+	     * - ip: 로그인 시점의 클라이언트 IP (보안 검증용)
+	     * - userAgent: 접속 기기/브라우저 정보 (세션 관리용)
+	     * - jti: 토큰 식별자 중복 저장 (데이터 자기 완결성)
+	     * * 3. TTL: 리프레시 토큰 유효 기간과 동일 (예: 14일)
+	     * 
+	     * [Elacticache Redis Oss]
+	     * 현재 aws 기본 환경 세팅 완료 (ec2, elasticache redis oss)
+	     * 로컬 개발시 로컬 pc 에서 ssh 터널링으로 6379 포트 redis 통신 예정, 로컬 작업지에 ec2 ssh 접속용 개인키 설치 확인
+	     * 
+	     */
+		
+		// 1. Access Token 생성 (jti 포함)
+	    String accessJti = UUID.randomUUID().toString();
+	    String accessToken = jwtProvider.createAccessToken(userId, authorities, accessJti);
+
+	    // 2. Refresh Token 생성 (jti 포함)
+	    String refreshJti = UUID.randomUUID().toString();
+	    String refreshToken = jwtProvider.createRefreshToken(userId, refreshJti);
+
+	    // 3. Redis 저장 (구조화된 Key/Value 사용)
+	    // Key=RT:1:uuid... | Value={"ip":"...","userAgent":"...","jti":"..."}
+	    String redisKey = "RT:" + userId + ":" + refreshJti;
+	    Map<String, String> refreshValue = Map.of(
+	        "ip", RequestUtil.getClientIp(httpServletRequest),
+	        "userAgent", RequestUtil.getUserAgent(httpServletRequest),
+	        "jti", refreshJti
+	    );
+
+	    redisTemplate.opsForValue().set(
+	        redisKey,
+	        refreshValue,
+	        Duration.ofMillis(jwtProvider.getRefreshTokenExpirySeconds() * 1000)
+	    );
+
+	    // 4. 결과 반환
+	    return TokenResponse.builder()
+	            .accessToken(accessToken)
+	            .refreshToken(refreshToken)
+	            .expiresIn(jwtProvider.getAccessTokenExpirySeconds())
+	            .build();
+	}
 	
 }
