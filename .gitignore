@@ -59,3 +59,6 @@ build/
 .DS_Store
 Thumbs.db
 /.apt_generated_tests/
+
+# Package-Tree Doc
+project-tree.txt
