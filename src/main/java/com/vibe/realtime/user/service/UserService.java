@@ -22,6 +22,14 @@ public class UserService {
     private final PasswordEncoder passwordEncoder; // final로 선언, 생성자 주입
     private final RoleRepository roleRepository;
     
+    /**
+     * 회원 생성
+     * 
+     * @param email
+     * @param password
+     * @param name
+     * @return
+     */
     @Transactional
     public User createUser(String email, String password, String name) {
 
@@ -51,4 +59,14 @@ public class UserService {
         }
     }
     
+    /**
+     * 회원 조회
+     * 
+     * @param id
+     * @return
+     */
+    public User findById(Integer id) {
+    	return userRepository.findById(id)
+    			.orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    }
 }
