@@ -122,15 +122,15 @@ public class AuthService {
 	private TokenResponse generateTokenSet(Integer userId, Collection<? extends GrantedAuthority> authorities) {
 		/**
 	     * [Refresh Token 관리 구조]
-	     * * 1. Key: RT:{user_id}:{jti}
-	     * - user_id: 사용자 식별자 (Long)
+	     * 1. Key: RT:{user_id}:{jti}
+	     * - user_id: 사용자 식별자 (Integer)
 	     * - jti: 토큰 고유 UUID (String)
 	     * - 목적: 멀티 디바이스 로그인 허용 및 각 세션의 독립적 제어
-	     * * 2. Value: JSON String (Map<String, String>)
+	     * 2. Value: JSON String (Map<String, String>)
 	     * - ip: 로그인 시점의 클라이언트 IP (보안 검증용)
 	     * - userAgent: 접속 기기/브라우저 정보 (세션 관리용)
-	     * - jti: 토큰 식별자 중복 저장 (데이터 자기 완결성)
-	     * * 3. TTL: 리프레시 토큰 유효 기간과 동일 (예: 14일)
+	     * - jti: 토큰 식별자
+	     * 3. TTL: 리프레시 토큰 유효 기간과 동일 (1일)
 	     * 
 	     * [Elacticache Redis Oss]
 	     * 현재 aws 기본 환경 세팅 완료 (ec2, elasticache redis oss)
