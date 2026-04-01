@@ -117,7 +117,7 @@ public class AuthService {
     }
 	
 	/**
-	 * 토큰 세트 생성 및 리프레시 토큰 Redis 저장 통합 메서드
+	 * AT + RT 토큰 세트 생성 및 리프레시 토큰 Redis 저장 통합 메서드
 	 */
 	private TokenResponse generateTokenSet(Integer userId, Collection<? extends GrantedAuthority> authorities) {
 		/**

@@ -1,6 +1,5 @@
 package com.vibe.realtime.user.dto;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +27,7 @@ public class UserResponse {
     private List<String> roles;
     
     // -----------------------------
-    // User 엔티티 → UserResponse 변환
+    // User 엔티티 → UserResponse 변환 (정적 팩토리 메서드)
     // -----------------------------
     public static UserResponse from(User user) {
         return UserResponse.builder()

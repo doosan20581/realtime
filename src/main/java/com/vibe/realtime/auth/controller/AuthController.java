@@ -1,5 +1,8 @@
 package com.vibe.realtime.auth.controller;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,9 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vibe.realtime.auth.dto.AuthResponse;
 import com.vibe.realtime.auth.dto.LoginRequest;
+import com.vibe.realtime.auth.dto.LoginResponse;
 import com.vibe.realtime.auth.dto.SignupRequest;
+import com.vibe.realtime.auth.dto.SignupResponse;
 import com.vibe.realtime.auth.security.CustomUserDetails;
 import com.vibe.realtime.auth.service.AuthService;
+import com.vibe.realtime.common.config.security.JwtProvider;
 import com.vibe.realtime.common.response.ApiResponse;
 import com.vibe.realtime.user.dto.UserResponse;
 
@@ -30,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 	
 	private final AuthService authService;
-
+	private final JwtProvider jwtProvider;
 	
 	@PostMapping("/signup")
 	@Operation(
@@ -57,8 +63,27 @@ public class AuthController {
 	        content = @Content(schema = @Schema(implementation = ApiResponse.class))
 	    )
 	})
-	public ApiResponse<AuthResponse> signup(@RequestBody @Valid SignupRequest request) {
-	    return ApiResponse.success(authService.signup(request));
+	public ResponseEntity<ApiResponse<SignupResponse>> signup(@RequestBody @Valid SignupRequest request) {
+	    
+		// 1. 회원가입 로직 수행 (AT, RT 생성 및 Redis 저장)
+	    AuthResponse authResponse = authService.signup(request);
+	    
+	    // 2. 쿠키 생성 (RT 전용)
+	    ResponseCookie rtCookie = ResponseCookie.from("refreshToken", authResponse.getToken().getRefreshToken()) // RT 추출하여 쿠키 생성
+	            .httpOnly(true)
+	            .secure(true)
+	            .path("/")
+	            .maxAge(jwtProvider.getRefreshTokenExpirySeconds())
+	            .build();
+	    
+	    // 3. 회원가입 응답용 DTO로 변환 (RT 제외)
+	    SignupResponse signupResponse = SignupResponse.from(authResponse);
+
+	    // 4. 응답 조립
+	    // Body에는 ApiResponse.success()를 사용하고, Header에는 쿠키를 추가합니다.
+	    return ResponseEntity.ok()
+	            .header(HttpHeaders.SET_COOKIE, rtCookie.toString())
+	            .body(ApiResponse.success(signupResponse));
 	}
 	
 	@PostMapping("/login")
@@ -86,8 +111,26 @@ public class AuthController {
 	        content = @Content(schema = @Schema(implementation = ApiResponse.class))
 	    )
 	})
-	public ApiResponse<AuthResponse> login(@RequestBody @Valid LoginRequest request) {
-		return ApiResponse.success(authService.login(request));
+	public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
+		// 1. 로그인 로직 수행 (AT, RT 생성 및 Redis 저장)
+	    AuthResponse authResponse = authService.login(request);
+	    
+	    // 2. 쿠키 생성 (RT 전용)
+	    ResponseCookie rtCookie = ResponseCookie.from("refreshToken", authResponse.getToken().getRefreshToken()) // RT 추출하여 쿠키 생성
+	            .httpOnly(true)
+	            .secure(true)
+	            .path("/")
+	            .maxAge(jwtProvider.getRefreshTokenExpirySeconds())
+	            .build();
+	    
+	    // 3. 로그인 응답용 DTO로 변환 (RT 제외)
+	    LoginResponse loginResponse = LoginResponse.from(authResponse);
+
+	    // 4. 응답 조립
+	    // Body에는 ApiResponse.success()를 사용하고, Header에는 쿠키를 추가합니다.
+	    return ResponseEntity.ok()
+	            .header(HttpHeaders.SET_COOKIE, rtCookie.toString())
+	            .body(ApiResponse.success(loginResponse));         
 	}
 	
 	@GetMapping("/me")

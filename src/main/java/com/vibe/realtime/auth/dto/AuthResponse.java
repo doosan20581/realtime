@@ -8,7 +8,7 @@ import lombok.Data;
 
 @Data
 @Builder
-@Schema(name = "AuthResponse", description = "인증 결과 및 사용자 정보 Response DTO")
+@Schema(name = "AuthResponse", description = "AT, RT 및 사용자 정보 Response DTO")
 public class AuthResponse {
 	
 	@Schema(description = "JWT 토큰 정보", implementation = TokenResponse.class)

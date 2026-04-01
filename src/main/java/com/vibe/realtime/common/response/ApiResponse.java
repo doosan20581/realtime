@@ -3,10 +3,13 @@ package com.vibe.realtime.common.response;
 import com.vibe.realtime.common.exception.ErrorCode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
 @Schema(name = "ApiResponse", description = "API 공통 응답 포맷")
+@AllArgsConstructor(access = AccessLevel.PRIVATE) // 외부에서 new ApiResponse(...) 호출 방지
 public class ApiResponse<T> {
 	
 	@Schema(description = "요청 성공 여부", example = "true")
@@ -17,6 +20,7 @@ public class ApiResponse<T> {
 	
 	@Schema(description = "응답 메시지", example = "OK")
     private String message;
+	
 	@Schema(description = "응답 데이터")
     private T data;
 
