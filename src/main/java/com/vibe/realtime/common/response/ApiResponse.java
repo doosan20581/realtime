@@ -1,5 +1,7 @@
 package com.vibe.realtime.common.response;
 
+import com.vibe.realtime.auth.dto.LoginResponse;
+import com.vibe.realtime.auth.dto.SignupResponse;
 import com.vibe.realtime.common.exception.ErrorCode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -59,8 +61,24 @@ public class ApiResponse<T> {
         response.data = null;
         return response;
     }
+    
+    // -----------------------------
+    // 실패 응답: ErrorCode 기반 + 상세 메세지 출력
+    // -----------------------------
+    public static <T> ApiResponse<T> fail(ErrorCode errorCode, String errorMessage) {
+		ApiResponse<T> response = new ApiResponse<>();
+        response.success = false;
+        response.code = errorCode.getCode();
+        response.message = errorMessage;
+        response.data = null;
+        return response;
+	}
 
     // 기본 생성자는 private으로 숨겨도 됨 (정적 팩토리 사용)
     private ApiResponse() {}
     
+    // Swagger 표시용 정적 클래스
+    // ApiResponse.java 내부 혹은 별도 파일
+    public static class LoginApiResponse extends ApiResponse<LoginResponse> {}
+    public static class SignupApiResponse extends ApiResponse<SignupResponse> {}
 }

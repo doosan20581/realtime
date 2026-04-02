@@ -17,8 +17,11 @@ import com.vibe.realtime.auth.dto.SignupRequest;
 import com.vibe.realtime.auth.dto.SignupResponse;
 import com.vibe.realtime.auth.security.CustomUserDetails;
 import com.vibe.realtime.auth.service.AuthService;
+import com.vibe.realtime.common.annotation.ApiCommonResponses;
 import com.vibe.realtime.common.config.security.JwtProvider;
 import com.vibe.realtime.common.response.ApiResponse;
+import com.vibe.realtime.common.response.ApiResponse.LoginApiResponse;
+import com.vibe.realtime.common.response.ApiResponse.SignupApiResponse;
 import com.vibe.realtime.user.dto.UserResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,24 +46,13 @@ public class AuthController {
 	    summary = "회원가입 및 JWT 발급",
 	    description = "신규 회원 가입 후 AuthResponse를 반환합니다."
 	)
+	@ApiCommonResponses // 공통 에러 응답(400, 401, 500) 일괄 적용
 	@ApiResponses({
-	    // 1. 200: 성공
+	    // 200: 성공
 	    @io.swagger.v3.oas.annotations.responses.ApiResponse(
 	        responseCode = "200",
 	        description = "회원가입 성공",
-	        content = @Content(schema = @Schema(implementation = AuthResponse.class))
-	    ),
-	    // 2. 400: 이메일 중복 또는 Validation 에러
-	    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-	        responseCode = "400",
-	        description = "잘못된 요청 (이메일 중복 또는 유효성 위반)",
-	        content = @Content(schema = @Schema(implementation = ApiResponse.class))
-	    ),
-	    // 3. 500: 서버 에러
-	    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-	        responseCode = "500",
-	        description = "서버 오류",
-	        content = @Content(schema = @Schema(implementation = ApiResponse.class))
+	        content = @Content(schema = @Schema(implementation = SignupApiResponse.class))
 	    )
 	})
 	public ResponseEntity<ApiResponse<SignupResponse>> signup(@RequestBody @Valid SignupRequest request) {
@@ -87,30 +79,17 @@ public class AuthController {
 	}
 	
 	@PostMapping("/login")
-	@Operation(
-	    summary = "로그인 처리",
-	    description = "로그인 처리 후 AuthResponse를 반환합니다."
-	)
-	@ApiResponses({
-	    // 1. 200: 성공
-	    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-	        responseCode = "200",
-	        description = "로그인 성공 성공",
-	        content = @Content(schema = @Schema(implementation = AuthResponse.class))
-	    ),
-	    // 2. 400: Validation 에러
-	    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-	        responseCode = "400",
-	        description = "잘못된 요청 (유효성 위반)",
-	        content = @Content(schema = @Schema(implementation = ApiResponse.class))
-	    ),
-	    // 3. 500: 서버 에러
-	    @io.swagger.v3.oas.annotations.responses.ApiResponse(
-	        responseCode = "500",
-	        description = "서버 오류",
-	        content = @Content(schema = @Schema(implementation = ApiResponse.class))
+	@ApiCommonResponses // 공통 에러 응답(400, 401, 500) 일괄 적용
+	@Operation(summary = "로그인 API", description = "ID/PW로 로그인하고 AT는 Body, RT는 Cookie로 발급합니다.")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+	    responseCode = "200",
+	    description = "로그인 성공",
+	    content = @Content(
+	        mediaType = "application/json",
+	        // 핵심: 제네릭이 제거된 '실체 클래스'를 지정합니다.
+	        schema = @Schema(implementation = LoginApiResponse.class)
 	    )
-	})
+	)
 	public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
 		// 1. 로그인 로직 수행 (AT, RT 생성 및 Redis 저장)
 	    AuthResponse authResponse = authService.login(request);
