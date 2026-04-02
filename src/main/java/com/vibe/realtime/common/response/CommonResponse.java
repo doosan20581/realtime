@@ -10,9 +10,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
-@Schema(name = "ApiResponse", description = "API 공통 응답 포맷")
-@AllArgsConstructor(access = AccessLevel.PRIVATE) // 외부에서 new ApiResponse(...) 호출 방지
-public class ApiResponse<T> {
+@Schema(name = "CommonResponse", description = "API 공통 응답 포맷")
+@AllArgsConstructor(access = AccessLevel.PRIVATE) // 외부에서 new CommonResponse(...) 호출 방지
+public class CommonResponse<T> {
 	
 	@Schema(description = "요청 성공 여부", example = "true")
     private boolean success;
@@ -29,8 +29,8 @@ public class ApiResponse<T> {
     // -----------------------------
     // 성공 응답
     // -----------------------------
-    public static <T> ApiResponse<T> success(T data) {
-        ApiResponse<T> response = new ApiResponse<>();
+    public static <T> CommonResponse<T> success(T data) {
+        CommonResponse<T> response = new CommonResponse<>();
         response.success = true;
         response.code = "SUCCESS"; // 기본 코드
         response.message = "OK";   // 기본 메시지
@@ -41,8 +41,8 @@ public class ApiResponse<T> {
     // -----------------------------
     // 실패 응답: ErrorCode 기반
     // -----------------------------
-    public static <T> ApiResponse<T> fail(ErrorCode errorCode) {
-        ApiResponse<T> response = new ApiResponse<>();
+    public static <T> CommonResponse<T> fail(ErrorCode errorCode) {
+        CommonResponse<T> response = new CommonResponse<>();
         response.success = false;
         response.code = errorCode.getCode();
         response.message = errorCode.getMessage();
@@ -53,8 +53,8 @@ public class ApiResponse<T> {
     // -----------------------------
     // 실패 응답: 직접 메시지 지정
     // -----------------------------
-    public static <T> ApiResponse<T> fail(String code, String message) {
-        ApiResponse<T> response = new ApiResponse<>();
+    public static <T> CommonResponse<T> fail(String code, String message) {
+        CommonResponse<T> response = new CommonResponse<>();
         response.success = false;
         response.code = code;
         response.message = message;
@@ -65,8 +65,8 @@ public class ApiResponse<T> {
     // -----------------------------
     // 실패 응답: ErrorCode 기반 + 상세 메세지 출력
     // -----------------------------
-    public static <T> ApiResponse<T> fail(ErrorCode errorCode, String errorMessage) {
-		ApiResponse<T> response = new ApiResponse<>();
+    public static <T> CommonResponse<T> fail(ErrorCode errorCode, String errorMessage) {
+		CommonResponse<T> response = new CommonResponse<>();
         response.success = false;
         response.code = errorCode.getCode();
         response.message = errorMessage;
@@ -75,10 +75,10 @@ public class ApiResponse<T> {
 	}
 
     // 기본 생성자는 private으로 숨겨도 됨 (정적 팩토리 사용)
-    private ApiResponse() {}
+    private CommonResponse() {}
     
     // Swagger 표시용 정적 클래스
-    // ApiResponse.java 내부 혹은 별도 파일
-    public static class LoginApiResponse extends ApiResponse<LoginResponse> {}
-    public static class SignupApiResponse extends ApiResponse<SignupResponse> {}
+    // CommonResponse.java 내부 혹은 별도 파일
+    public static class LoginCommonResponse extends CommonResponse<LoginResponse> {}
+    public static class SignupCommonResponse extends CommonResponse<SignupResponse> {}
 }

@@ -16,22 +16,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
     @ApiResponse(
         responseCode = "400",
         description = "잘못된 요청 (파라미터 누락, 유효성 위반 등)",
-        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.ApiResponse.class))
+        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.CommonResponse.class))
     ),
     @ApiResponse(
         responseCode = "401",
         description = "인증 실패 (토큰 만료 또는 유효하지 않음)",
-        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.ApiResponse.class))
+        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.CommonResponse.class))
     ),
     @ApiResponse(
         responseCode = "403",
         description = "접근 권한 부족 (인가 실패)",
-        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.ApiResponse.class))
+        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.CommonResponse.class))
     ),
     @ApiResponse(
         responseCode = "500",
         description = "서버 내부 오류",
-        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.ApiResponse.class))
+        content = @Content(schema = @Schema(implementation = com.vibe.realtime.common.response.CommonResponse.class))
     )
 })
 public @interface ApiCommonResponses {

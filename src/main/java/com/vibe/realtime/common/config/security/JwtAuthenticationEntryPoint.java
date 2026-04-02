@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vibe.realtime.common.exception.ErrorCode;
-import com.vibe.realtime.common.response.ApiResponse;
+import com.vibe.realtime.common.response.CommonResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -33,8 +33,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType("application/json;charset=UTF-8");
         
         // GlobalExceptionHandler와 동일한 응답 구조 유지
-        ApiResponse<Object> apiResponse = ApiResponse.fail(ErrorCode.UNAUTHORIZED);
-        String result = objectMapper.writeValueAsString(apiResponse);
+        CommonResponse<Object> commonResponse = CommonResponse.fail(ErrorCode.UNAUTHORIZED);
+        String result = objectMapper.writeValueAsString(commonResponse);
         
         response.getWriter().write(result);
     }
