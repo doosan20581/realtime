@@ -12,9 +12,11 @@ import com.vibe.realtime.user.entity.User;
 import com.vibe.realtime.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-@Service
+@Slf4j
 @RequiredArgsConstructor
+@Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -27,12 +29,18 @@ public class CustomUserDetailsService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    	
+    	// 로그에는 상세 정보를 남겨서 개발자가 추적할 수 있게 함
+        log.debug("Trying to authenticate user: {}", email);
 
         // 1. DB에서 사용자 조회
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException("사용자를 찾을 수 없습니다."));
-
+                .orElseThrow(() -> {
+                    return new UsernameNotFoundException("이메일 또는 비밀번호가 올바르지 않습니다.");
+    			}); 
+        		// 보안을 위해 "사용자를 찾을 수 없습니다" 대신 통합 메시지 사용
+        		// 여기서 던지는 예외는 서비스 단으로 이동
+        
         // 2. 권한 변환
         var authorities = user.getRoles().stream()
                 .map(role -> new SimpleGrantedAuthority(role.getName()))

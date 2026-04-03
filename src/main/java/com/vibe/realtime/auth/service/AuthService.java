@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +22,10 @@ import com.vibe.realtime.auth.dto.LoginRequest;
 import com.vibe.realtime.auth.dto.SignupRequest;
 import com.vibe.realtime.auth.dto.TokenResponse;
 import com.vibe.realtime.auth.security.CustomUserDetails;
+import com.vibe.realtime.auth.security.CustomUserDetailsService;
 import com.vibe.realtime.common.config.security.JwtProvider;
+import com.vibe.realtime.common.exception.BusinessException;
+import com.vibe.realtime.common.exception.ErrorCode;
 import com.vibe.realtime.common.util.RequestUtil;
 import com.vibe.realtime.user.dto.UserResponse;
 import com.vibe.realtime.user.entity.User;
@@ -29,7 +33,9 @@ import com.vibe.realtime.user.service.UserService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class AuthService {
@@ -85,35 +91,57 @@ public class AuthService {
 		String email = request.getEmail();
 		String password = request.getPassword();
 		
-        // 1️. 인증
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(email, password)
-        );
-        // 필수: 인증 정보를 Spring Security 컨텍스트에 저장
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+		try {
+			
+			// 1️. 인증
+			// Manager가 Provider -> UserDetailsService 순으로 호출
+			// 내부적으로 passwordEncoder.matches()까지 알아서 체크
+			// 아이디가 없으면 UsernameNotFoundException, 비밀번호가 틀리면 BadCredentialsException이 발생
+	        Authentication authentication = authenticationManager.authenticate(
+	            new UsernamePasswordAuthenticationToken(email, password)
+	        );
+	        
+	        // 필수: 인증 정보를 Spring Security 컨텍스트에 저장
+	        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // 2️. CustomUserDetails 추출
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        
-        // 3. 통합 메서드 호출 (토큰 생성 + Redis 저장)
-	    TokenResponse tokenResponse = generateTokenSet(userDetails.getUserId(), userDetails.getAuthorities());
+	        // 2️. CustomUserDetails 추출
+	        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+	        
+	        // 3. 통합 메서드 호출 (토큰 생성 + Redis 저장)
+		    TokenResponse tokenResponse = generateTokenSet(userDetails.getUserId(), userDetails.getAuthorities());
 
-        // 4. UserResponse 생성 - 프론트엔드용 context
-        UserResponse userResponse = UserResponse.builder()
-            .id(userDetails.getUserId())
-            .name(userDetails.getName())
-            .email(userDetails.getEmail())
-            .roles(userDetails.getAuthorities()
-                .stream()
-                .map(auth -> auth.getAuthority())
-                .collect(Collectors.toList()))
-            .build();
+	        // 4. UserResponse 생성 - 프론트엔드용 context
+	        UserResponse userResponse = UserResponse.builder()
+	            .id(userDetails.getUserId())
+	            .name(userDetails.getName())
+	            .email(userDetails.getEmail())
+	            .roles(userDetails.getAuthorities()
+	                .stream()
+	                .map(auth -> auth.getAuthority())
+	                .collect(Collectors.toList()))
+	            .build();
 
-        // 5. AuthResponse 반환
-        return AuthResponse.builder()
-            .token(tokenResponse)
-            .user(userResponse)
-            .build();
+	        // 5. AuthResponse 반환
+	        return AuthResponse.builder()
+	            .token(tokenResponse)
+	            .user(userResponse)
+	            .build();
+			
+		} catch (AuthenticationException e) {
+			// [핵심] 아이디/비밀번호 불일치 등 모든 인증 실패를 LOGIN_FAILED로 치환
+	        log.warn("Login failed for user: {}", request.getEmail()); // 보안상 필요시 로그 기록
+	        throw new BusinessException(ErrorCode.LOGIN_FAILED);
+	        
+	        /*
+	         * AuthenticationException (부모)
+			 * UsernameNotFoundException: 계정을 찾을 수 없을 때 (아이디 틀림)
+			 * BadCredentialsException: 자격 증명이 유효하지 않을 때 (비밀번호 틀림)
+   			 * LockedException: 계정이 잠겨 있을 때
+   			 * DisabledException: 계정이 비활성화 상태일 때
+   			 * AccountExpiredException: 계정이 만료되었을 때
+	         */
+		}
+		
     }
 	
 	/**

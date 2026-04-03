@@ -20,6 +20,7 @@ import com.vibe.realtime.auth.service.AuthService;
 import com.vibe.realtime.common.annotation.ApiCommonResponses;
 import com.vibe.realtime.common.config.security.JwtProvider;
 import com.vibe.realtime.common.response.CommonResponse;
+import com.vibe.realtime.common.response.CommonResponse.ErrorCommonResponse;
 import com.vibe.realtime.common.response.CommonResponse.LoginCommonResponse;
 import com.vibe.realtime.common.response.CommonResponse.SignupCommonResponse;
 import com.vibe.realtime.user.dto.UserResponse;
@@ -30,6 +31,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
@@ -47,13 +49,31 @@ public class AuthController {
 	    summary = "회원가입 및 JWT 발급",
 	    description = "신규 회원 가입 후 AuthResponse를 반환합니다."
 	)
-	@ApiCommonResponses // 공통 에러 응답(400, 401, 500) 일괄 적용
+	@ApiCommonResponses // 공통 에러 응답(401, 403, 500) 일괄 적용
 	@ApiResponses({
 	    // 200: 성공
 	    @ApiResponse(
 	        responseCode = "200",
 	        description = "회원가입 성공",
 	        content = @Content(schema = @Schema(implementation = SignupCommonResponse.class))
+	    ),
+	    @ApiResponse(
+	    	responseCode = "400", description = "회원가입 실패", 
+	    	content = @Content(
+    			schema = @Schema(implementation = ErrorCommonResponse.class),
+    			examples = {
+					@ExampleObject(
+						name = "Email Duplicate", 
+						summary = "이메일 중복", 
+						value = "{\"success\":false, \"code\":\"EMAIL_ALREADY_EXISTS\", \"message\":\"이미 존재하는 이메일입니다.\"}"
+					),
+					@ExampleObject(
+						name = "Validation Fail", 
+						summary = "입력값 오류", 
+						value = "{\"success\":false, \"code\":\"INVALID_INPUT_VALUE\", \"message\":\"상세 메시지...\"}"
+					)
+    			}
+    		)
 	    )
 	})
 	public ResponseEntity<CommonResponse<SignupResponse>> signup(@RequestBody @Valid SignupRequest request) {
@@ -80,17 +100,37 @@ public class AuthController {
 	}
 	
 	@PostMapping("/login")
-	@ApiCommonResponses // 공통 에러 응답(400, 401, 500) 일괄 적용
-	@Operation(summary = "로그인 API", description = "ID/PW로 로그인하고 AT는 Body, RT는 Cookie로 발급합니다.")
-	@ApiResponse(
-	    responseCode = "200",
-	    description = "로그인 성공",
-	    content = @Content(
-	        mediaType = "application/json",
-	        // 핵심: 제네릭이 제거된 '실체 클래스'를 지정합니다.
-	        schema = @Schema(implementation = LoginCommonResponse.class)
-	    )
-	)
+	@ApiCommonResponses // 공통 에러 응답(401, 403, 500) 일괄 적용
+	@Operation(summary = "로그인", description = "ID/PW로 로그인하고 AT는 Body, RT는 Cookie로 발급합니다.")
+	@ApiResponses({
+		@ApiResponse(
+		    responseCode = "200",
+		    description = "로그인 성공",
+		    content = @Content(
+		        mediaType = "application/json",
+		        // 핵심: 제네릭이 제거된 '실체 클래스'를 지정합니다.
+		        schema = @Schema(implementation = LoginCommonResponse.class)
+		    )
+		),
+		@ApiResponse(
+	    	responseCode = "400", description = "로그인 실패",
+	    	content = @Content(
+    			schema = @Schema(implementation = ErrorCommonResponse.class),
+    			examples = {
+					@ExampleObject(
+						name = "Login Failure", 
+						summary = "로그인 정보 불일치", 
+						value = "{\"success\":false, \"code\":\"LOGIN_FAILED\", \"message\":\"이메일 또는 비밀번호가 올바르지 않습니다.\"}"
+					),
+					@ExampleObject(
+						name = "Validation Fail", 
+						summary = "입력값 오류", 
+						value = "{\"success\":false, \"code\":\"INVALID_INPUT_VALUE\", \"message\":\"상세 메시지...\"}"
+					)
+    			}
+	    	)
+		)
+	})
 	public ResponseEntity<CommonResponse<LoginResponse>> login(@RequestBody @Valid LoginRequest request) {
 		// 1. 로그인 로직 수행 (AT, RT 생성 및 Redis 저장)
 	    AuthResponse authResponse = authService.login(request);

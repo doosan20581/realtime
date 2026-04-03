@@ -67,6 +67,6 @@ public class UserService {
      */
     public User findById(Integer id) {
     	return userRepository.findById(id)
-    			.orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
+    			.orElseThrow(() -> new BusinessException(ErrorCode.LOGIN_FAILED));
     }
 }

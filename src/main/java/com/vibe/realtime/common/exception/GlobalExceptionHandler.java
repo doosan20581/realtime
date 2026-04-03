@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
         
         // ErrorCode의 코드 + 상세 에러 메세지 출력 형태
         return ResponseEntity
-                .badRequest()
+        		.status(HttpStatus.BAD_REQUEST)
                 .body(CommonResponse.fail(ErrorCode.INVALID_INPUT_VALUE, errorMessage));
     }
 

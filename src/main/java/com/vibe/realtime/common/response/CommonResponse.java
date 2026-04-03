@@ -14,13 +14,13 @@ import lombok.Getter;
 @AllArgsConstructor(access = AccessLevel.PRIVATE) // 외부에서 new CommonResponse(...) 호출 방지
 public class CommonResponse<T> {
 	
-	@Schema(description = "요청 성공 여부", example = "true")
+	@Schema(description = "요청 성공 여부")
     private boolean success;
 	
-	@Schema(description = "응답 코드", example = "SUCCESS")
+	@Schema(description = "응답 코드")
     private String code;
 	
-	@Schema(description = "응답 메시지", example = "OK")
+	@Schema(description = "응답 메시지")
     private String message;
 	
 	@Schema(description = "응답 데이터")
@@ -81,4 +81,12 @@ public class CommonResponse<T> {
     // CommonResponse.java 내부 혹은 별도 파일
     public static class LoginCommonResponse extends CommonResponse<LoginResponse> {}
     public static class SignupCommonResponse extends CommonResponse<SignupResponse> {}
+    
+    // 추가: 에러 응답 전용 실체 클래스 (상속 활용)
+    @Schema(name = "ErrorCommonResponse", description = "공통 에러 응답 포맷")
+    public static class ErrorCommonResponse extends CommonResponse<Void> {
+        @Schema(example = "false") public boolean isSuccess() { return false; }
+        @Schema(example = "ERROR_CODE") public String getCode() { return "ERROR_CODE"; }
+        @Schema(example = "에러 메시지 내용") public String getMessage() { return "에러 메시지 내용"; }
+    }
 }
