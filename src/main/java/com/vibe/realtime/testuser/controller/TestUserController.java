@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vibe.realtime.testuser.dto.TestUserResponse;
 import com.vibe.realtime.testuser.service.TestUserService;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;
 
+@Hidden // 이 컨트롤러의 모든 API가 Swagger UI에서 사라집니다.
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/test/test-users")
