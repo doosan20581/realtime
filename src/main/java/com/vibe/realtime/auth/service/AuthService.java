@@ -17,17 +17,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.vibe.realtime.auth.dto.AuthResponse;
 import com.vibe.realtime.auth.dto.LoginRequest;
 import com.vibe.realtime.auth.dto.SignupRequest;
 import com.vibe.realtime.auth.dto.TokenResponse;
 import com.vibe.realtime.auth.security.CustomUserDetails;
-import com.vibe.realtime.auth.security.CustomUserDetailsService;
 import com.vibe.realtime.common.config.security.JwtProvider;
 import com.vibe.realtime.common.exception.BusinessException;
 import com.vibe.realtime.common.exception.ErrorCode;
 import com.vibe.realtime.common.util.RequestUtil;
-import com.vibe.realtime.user.dto.UserResponse;
 import com.vibe.realtime.user.entity.User;
 import com.vibe.realtime.user.service.UserService;
 
@@ -52,7 +49,7 @@ public class AuthService {
      * @param request
      * @return
      */
-	public AuthResponse signup(SignupRequest request) {
+	public TokenResponse signup(SignupRequest request) {
 		
 		// 1. 신규 회원 레코드 생성
 	    User user = userService.createUser(
@@ -69,15 +66,8 @@ public class AuthService {
 	    // 3. 통합 메서드 호출 (토큰 생성 + Redis 저장)
 	    TokenResponse tokenResponse = generateTokenSet(user.getId(), authorities);
 	    
-	    // 4. UserResponse 생성 - 프론트엔드용 context
-	    UserResponse userResponse = UserResponse.from(user);
-	    
-	    // 5. AuthResponse 반환
-	    return AuthResponse.builder()
-	            .token(tokenResponse)
-	            .user(userResponse)
-	            .build();
-
+	    // 4. TokenResponse 반환
+	    return tokenResponse;
 	}
 	
 	/**
@@ -86,7 +76,7 @@ public class AuthService {
 	 * @param request
 	 * @return
 	 */
-	public AuthResponse login(LoginRequest request) {
+	public TokenResponse login(LoginRequest request) {
 		
 		String email = request.getEmail();
 		String password = request.getPassword();
@@ -101,7 +91,8 @@ public class AuthService {
 	            new UsernamePasswordAuthenticationToken(email, password)
 	        );
 	        
-	        // 필수: 인증 정보를 Spring Security 컨텍스트에 저장
+	        // [필수] 로그인 성공 후, 해당 요청 흐름에서 사용할 인증 정보를 Spring Security 컨텍스트에 저장
+	        // 이후 매 요청시마다, jwt 필터에서 검증 후 Spring Security 컨텍스트에 저장
 	        SecurityContextHolder.getContext().setAuthentication(authentication);
 
 	        // 2️. CustomUserDetails 추출
@@ -110,22 +101,8 @@ public class AuthService {
 	        // 3. 통합 메서드 호출 (토큰 생성 + Redis 저장)
 		    TokenResponse tokenResponse = generateTokenSet(userDetails.getUserId(), userDetails.getAuthorities());
 
-	        // 4. UserResponse 생성 - 프론트엔드용 context
-	        UserResponse userResponse = UserResponse.builder()
-	            .id(userDetails.getUserId())
-	            .name(userDetails.getName())
-	            .email(userDetails.getEmail())
-	            .roles(userDetails.getAuthorities()
-	                .stream()
-	                .map(auth -> auth.getAuthority())
-	                .collect(Collectors.toList()))
-	            .build();
-
-	        // 5. AuthResponse 반환
-	        return AuthResponse.builder()
-	            .token(tokenResponse)
-	            .user(userResponse)
-	            .build();
+	        // 4. TokenResponse 반환
+	        return tokenResponse;
 			
 		} catch (AuthenticationException e) {
 			// [핵심] 아이디/비밀번호 불일치 등 모든 인증 실패를 LOGIN_FAILED로 치환

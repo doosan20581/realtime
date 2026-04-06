@@ -1,7 +1,5 @@
 package com.vibe.realtime.common.response;
 
-import com.vibe.realtime.auth.dto.LoginResponse;
-import com.vibe.realtime.auth.dto.SignupResponse;
 import com.vibe.realtime.common.exception.ErrorCode;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -76,17 +74,4 @@ public class CommonResponse<T> {
 
     // 기본 생성자는 private으로 숨겨도 됨 (정적 팩토리 사용)
     private CommonResponse() {}
-    
-    // Swagger 표시용 정적 클래스
-    // CommonResponse.java 내부 혹은 별도 파일
-    public static class LoginCommonResponse extends CommonResponse<LoginResponse> {}
-    public static class SignupCommonResponse extends CommonResponse<SignupResponse> {}
-    
-    // 추가: 에러 응답 전용 실체 클래스 (상속 활용)
-    @Schema(name = "ErrorCommonResponse", description = "공통 에러 응답 포맷")
-    public static class ErrorCommonResponse extends CommonResponse<Void> {
-        @Schema(example = "false") public boolean isSuccess() { return false; }
-        @Schema(example = "ERROR_CODE") public String getCode() { return "ERROR_CODE"; }
-        @Schema(example = "에러 메시지 내용") public String getMessage() { return "에러 메시지 내용"; }
-    }
 }
