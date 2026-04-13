@@ -68,7 +68,10 @@ public class SecurityConfig {
 
             // URL 접근 권한 설정
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/auth/**", "/ws/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                .requestMatchers("/").permitAll() // 테스트
+                .requestMatchers("/auth/**").permitAll() // 로그인 관련
+                .requestMatchers("/ws/**").permitAll() // 웹소켓
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // 스웨거
                 .anyRequest().authenticated()
             )
 
