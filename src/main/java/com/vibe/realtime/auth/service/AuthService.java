@@ -87,6 +87,13 @@ public class AuthService {
 			// Manager가 Provider -> UserDetailsService 순으로 호출
 			// 내부적으로 passwordEncoder.matches()까지 알아서 체크
 			// 아이디가 없으면 UsernameNotFoundException, 비밀번호가 틀리면 BadCredentialsException이 발생
+			
+			// **AuthenticationManager**가 등록된 **DaoAuthenticationProvider**를 깨웁니다.
+			// **DaoAuthenticationProvider**는 "DB에 있는 유저 정보를 가져와봐"라며 **CustomUserDetailsService.loadUserByUsername(email)**을 호출합니다. (이때 실행됩니다!)
+			// loadUserByUsername이 DB에서 정보를 읽어와 **CustomUserDetails (Full 버전)**을 리턴합니다.
+			// Provider는 리턴받은 userDetails의 비밀번호와 사용자가 입력한 password를 passwordEncoder.matches()로 비교합니다.
+			// 일치하면 인증된 Authentication 객체를 리턴하고, 틀리면 BadCredentialsException을 던집니다.
+			
 	        Authentication authentication = authenticationManager.authenticate(
 	            new UsernamePasswordAuthenticationToken(email, password)
 	        );

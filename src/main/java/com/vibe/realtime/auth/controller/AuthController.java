@@ -92,11 +92,14 @@ public class AuthController {
 	 */
 	private ResponseCookie createRefreshTokenCookie(String refreshToken) {
 	    return ResponseCookie.from("refreshToken", refreshToken)
-	            .httpOnly(true)
-	            .secure(true)
+	            .httpOnly(true) // 자바스크립트 접근 불가 설정
+	            .secure(true) // 쿠키를 반드시 암호화된 연결(HTTPS)을 통해서만 전송하겠다 선언
 	            .path("/")
 	            .maxAge(jwtProvider.getRefreshTokenExpirySeconds())
 	            .sameSite("Strict") // CSRF 방지를 위해 추가 권장
+	            // Strict (엄격) - 쿠키가 동일한 사이트(First-party) 내에서 발생하는 요청에만 전송됩니다.
+	            // Lax (느슨 - 기본값) - Strict보다는 조금 더 유연합니다. 대부분의 경우 쿠키 전송을 제한하지만, 사용자가 직접 링크를 클릭하여 이동하는 GET 방식의 요청에는 쿠키 전송을 허용합니다.
+	            // None (제한 없음) - 사이트 간 요청(Cross-Site)이라도 항상 쿠키를 전송합니다.
 	            .build();
 	}
 }

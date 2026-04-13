@@ -21,10 +21,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtProvider jwtProvider;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
     private final CustomUserDetailsService customUserDetailsService;
+    private final JwtExceptionFilter jwtExceptionFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     // ------------------------------
     // 1. PasswordEncoder Bean
@@ -61,6 +62,8 @@ public class SecurityConfig {
 
         http
             // REST API이므로 CSRF 비활성화
+        	// CSRF(Cross-Site Request Forgery, 사이트 간 요청 위조) 보호 메커니즘을 비활성화
+        	// 
             .csrf(csrf -> csrf.disable())
 
             // JWT 기반이므로 세션 사용 안 함
@@ -68,7 +71,7 @@ public class SecurityConfig {
 
             // URL 접근 권한 설정
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/").permitAll() // 테스트
+                //.requestMatchers("/").permitAll() // 테스트
                 .requestMatchers("/auth/**").permitAll() // 로그인 관련
                 .requestMatchers("/ws/**").permitAll() // 웹소켓
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() // 스웨거
@@ -88,9 +91,13 @@ public class SecurityConfig {
             // AuthenticationProvider 설정
             .authenticationProvider(authenticationProvider(passwordEncoder()))
 
-            // JWT 필터 등록
-            .addFilterBefore(new JwtAuthenticationFilter(jwtProvider),
-                             UsernamePasswordAuthenticationFilter.class);
+            // 1. JWT 인증 필터 등록
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+        	
+        	// 2. JWT 예외 처리 필터 등록
+            // JWT 예외 처리 필터를 인증 필터보다 "앞에" 등록
+	        // 이렇게 하면 ExceptionFilter가 AuthenticationFilter를 감싸는 형태가 됩니다.
+	        .addFilterBefore(jwtExceptionFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
